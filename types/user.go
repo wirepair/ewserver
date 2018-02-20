@@ -11,6 +11,7 @@ type User struct {
 	FirstName string
 	LastName  string
 	UserName  UserName
+	APIKey    APIKey
 }
 
 // NewUser from bytes
@@ -18,6 +19,7 @@ func NewUser() *User {
 	return &User{}
 }
 
+// Encode the User into a gob of bytes
 func (u *User) Encode() ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
@@ -30,7 +32,8 @@ func (u *User) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func DecodedUser(userBytes []byte) (*User, error) {
+// DecodeUser from bytes using gob and return a User.
+func DecodeUser(userBytes []byte) (*User, error) {
 	buf := bytes.NewBuffer(userBytes)
 	enc := gob.NewDecoder(buf)
 	u := NewUser()

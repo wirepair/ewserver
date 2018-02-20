@@ -6,8 +6,6 @@ import (
 	"github.com/wirepair/ewserver/types"
 )
 
-const userTable = "users"
-
 type UserRepository interface {
 	AddUser(user *types.User) error
 	DeleteUser(user *types.User) error
@@ -56,5 +54,9 @@ func (userStore *UserStore) FindByID(ID []byte) (*types.User, error) {
 }
 
 func (userStore *UserStore) FindByUserName(userName types.UserName) (*types.User, error) {
-	return userStore.store.FindUserByName(string(userName))
+	return userStore.store.FindUserByUserName(userName)
+}
+
+func (userStore *UserStore) FindByAPIKey(key types.APIKey) (*types.User, error) {
+	return userStore.store.FindUserByAPIKey(key.Bytes())
 }
