@@ -11,4 +11,5 @@ type Storer interface {
 	FindUserByUserName(userName types.UserName) (*types.User, error) // Finds a User by UserName
 	FindUserByID(ID []byte) (*types.User, error)                     // Finds a User by ID
 	FindUserByAPIKey(Key []byte) (*types.User, error)                // Finds a User by the API Key
+	FindAllUsers() ([]*types.User, error)                            // Finds and returns all Users
 }

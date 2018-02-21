@@ -5,7 +5,6 @@ import (
 	"crypto/subtle"
 
 	"github.com/boltdb/bolt"
-	"github.com/wirepair/ewserver/errors"
 	"github.com/wirepair/ewserver/types"
 )
 
@@ -62,7 +61,7 @@ func (b *BoltStore) StoreUser(user *types.User) error {
 		bucket := tx.Bucket([]byte(userBucket))
 		userBytes, err := user.Encode()
 		if err != nil {
-			return errors.E(user.UserName, errors.Op("storeUser"), err)
+			return err
 		}
 		return bucket.Put(user.UserName.Bytes(), userBytes)
 	})
@@ -85,8 +84,9 @@ func (b *BoltStore) FindUserByUserName(userName types.UserName) (*types.User, er
 		bucket := tx.Bucket([]byte(userBucket))
 		userBytes := bucket.Get(userName.Bytes())
 		if userBytes == nil {
-			return errors.E(errors.NotExist, errors.Op("findUserByUserName"))
+			return nil
 		}
+
 		foundUser, decodeErr = types.DecodeUser(userBytes)
 		return decodeErr
 	})
@@ -114,7 +114,7 @@ func (b *BoltStore) FindUserByID(ID []byte) (*types.User, error) {
 				return nil
 			}
 		}
-		return errors.E(errors.NotExist, errors.Op("findUserByID"))
+		return nil
 	})
 	return foundUser, err
 }
@@ -136,19 +136,35 @@ func (b *BoltStore) FindUserByAPIKey(key []byte) (*types.User, error) {
 
 			// do a constant time to compare to prevent against brute force attacks
 			if subtle.ConstantTimeCompare(key, user.APIKey.Bytes()) == 1 {
-				// note we don't return immediately so this always takes O(n)
+				// note we don't return immediately so this always takes exactly O(n)
 				// in a real database we obviously wouldn't have this problem. But
 				// it's not like you are using this in production on the internet right?
 				foundUser = user
 			}
 		}
-
-		if foundUser == nil {
-			return errors.E(errors.NotExist, errors.Op("findUserByAPIKey"))
-		}
 		return nil
 	})
 	return foundUser, err
+}
+
+// FindAllUsers returns a slice of all users
+func (b *BoltStore) FindAllUsers() ([]*types.User, error) {
+	users := make([]*types.User, 0)
+
+	err := b.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(userBucket))
+		c := bucket.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			user, decodeErr := types.DecodeUser(v)
+			if decodeErr != nil {
+				continue
+			}
+			users = append(users, user)
+		}
+		return nil
+	})
+	return users, err
 }
 
 // Close the db file.

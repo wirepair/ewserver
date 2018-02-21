@@ -36,11 +36,7 @@ func TestBoltStore_StoreUser(t *testing.T) {
 	}
 	defer testCloseDb(d, t)
 
-	u := types.NewUser()
-	u.ID = []byte("123")
-	u.UserName = "user1"
-	u.FirstName = "test"
-	u.LastName = "user"
+	u := testUser("user1")
 
 	if err := d.StoreUser(u); err != nil {
 		t.Fatalf("error storing user: %s\n", err)
@@ -60,11 +56,7 @@ func TestBoltStore_FindUserByName(t *testing.T) {
 	}
 	defer testCloseDb(d, t)
 
-	u := types.NewUser()
-	u.ID = []byte("123")
-	u.UserName = "user1"
-	u.FirstName = "test"
-	u.LastName = "user"
+	u := testUser("user1")
 
 	if err := d.StoreUser(u); err != nil {
 		t.Fatalf("error storing user: %s\n", err)
@@ -83,8 +75,8 @@ func TestBoltStore_FindUserByName(t *testing.T) {
 		t.Fatalf("name fields do not match: %s %s and %s %s\n", u.FirstName, u.LastName, foundUser.FirstName, foundUser.LastName)
 	}
 
-	if _, err := d.FindUserByUserName("bleh"); err == nil {
-		t.Fatalf("did not get error finding a user who does not exist")
+	if _, err := d.FindUserByUserName("bleh"); err != nil {
+		t.Fatalf("got error finding a user who does not exist: %s\n", err)
 	}
 }
 
@@ -101,11 +93,7 @@ func TestBoltStore_FindUserByID(t *testing.T) {
 	}
 	defer testCloseDb(d, t)
 
-	u := types.NewUser()
-	u.ID = []byte("123")
-	u.UserName = "user1"
-	u.FirstName = "test"
-	u.LastName = "user"
+	u := testUser("user1")
 
 	if err := d.StoreUser(u); err != nil {
 		t.Fatalf("error storing user: %s\n", err)
@@ -124,8 +112,8 @@ func TestBoltStore_FindUserByID(t *testing.T) {
 		t.Fatalf("name fields do not match: %s %s and %s %s\n", u.FirstName, u.LastName, foundUser.FirstName, foundUser.LastName)
 	}
 
-	if _, err := d.FindUserByID([]byte("does not exist")); err == nil {
-		t.Fatalf("did not get error finding a user who does not exist")
+	if _, err := d.FindUserByID([]byte("does not exist")); err != nil {
+		t.Fatalf("got error finding a user who does not exist: %s\n", err)
 	}
 }
 
@@ -142,17 +130,9 @@ func TestBoltStore_FindUserByAPIKey(t *testing.T) {
 	}
 	defer testCloseDb(d, t)
 
-	u := types.NewUser()
-	u.ID = []byte("123")
-	u.UserName = "user1"
-	u.FirstName = "test"
-	u.LastName = "user"
-	u.APIKey = "aafdsdfsdfsdfsf"
+	u := testUser("user1")
 
-	u2 := types.NewUser()
-	u2.UserName = "user2"
-	u2.FirstName = "test"
-	u2.LastName = "user"
+	u2 := testUser("test2")
 	u2.APIKey = "aafdsdfsdfsdfsf1"
 
 	if err := d.StoreUser(u); err != nil {
@@ -176,8 +156,43 @@ func TestBoltStore_FindUserByAPIKey(t *testing.T) {
 		t.Fatalf("name fields do not match: %s %s and %s %s\n", u.FirstName, u.LastName, foundUser.FirstName, foundUser.LastName)
 	}
 
-	if _, err := d.FindUserByAPIKey([]byte("blerps")); err == nil {
-		t.Fatalf("expected error finding user who doesn't exist by invalid APIKey but did not get one\n")
+	if _, err := d.FindUserByAPIKey([]byte("blerps")); err != nil {
+		t.Fatalf("error finding user who doesn't exist by invalid APIKey: %s\n", err)
+	}
+}
+
+func TestBoltStore_FindAllUsers(t *testing.T) {
+	dbFileName, err := testTempDbFileName("testdata/")
+	if err != nil {
+		t.Fatalf("error opening db file for testing")
+	}
+	defer testRemoveDbFile(dbFileName, t)
+
+	d := NewBoltStore()
+	if err := d.Open(&Config{ConnectionString: dbFileName}); err != nil {
+		t.Fatalf("error opening database file: %s\n", err)
+	}
+	defer testCloseDb(d, t)
+
+	u := testUser("user1")
+
+	u2 := testUser("test2")
+
+	if err := d.StoreUser(u); err != nil {
+		t.Fatalf("error storing user: %s\n", err)
+	}
+
+	if err := d.StoreUser(u2); err != nil {
+		t.Fatalf("error storing user2: %s\n", err)
+	}
+
+	foundUsers, err := d.FindAllUsers()
+	if err != nil {
+		t.Fatalf("error finding users: %s\n", err)
+	}
+
+	if len(foundUsers) != 2 {
+		t.Fatalf("expected 2 users got: %d\n", len(foundUsers))
 	}
 }
 
@@ -194,11 +209,7 @@ func TestBoltStore_DeleteUserByName(t *testing.T) {
 	}
 	defer testCloseDb(d, t)
 
-	u := types.NewUser()
-	u.ID = []byte("123")
-	u.UserName = "user1"
-	u.FirstName = "test"
-	u.LastName = "user"
+	u := testUser("user1")
 
 	if err := d.StoreUser(u); err != nil {
 		t.Fatalf("error storing user: %s\n", err)
@@ -216,6 +227,16 @@ func TestBoltStore_DeleteUserByName(t *testing.T) {
 	if err := d.DeleteUserByName(foundUser.UserName); err != nil {
 		t.Fatalf("got error (when shouldn't) when deleting a user who no longer exists")
 	}
+}
+
+func testUser(userName types.UserName) *types.User {
+	u := types.NewUser()
+	u.ID = []byte("123")
+	u.UserName = userName
+	u.FirstName = "test"
+	u.LastName = "user"
+	u.APIKey = "asdfasdf"
+	return u
 }
 
 func testRemoveDbFile(dbFileName string, t *testing.T) {
