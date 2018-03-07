@@ -1,4 +1,4 @@
-package types
+package ewserver
 
 // PathName represents a path of something being accessed
 type PathName string
