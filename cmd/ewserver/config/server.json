@@ -1,0 +1,13 @@
+{
+    "cache_dir": "data",
+    "store_config": {
+        "options": {
+            "database": "ewserver.dat"
+        }
+    },
+    "host": "localhost",
+    "use_letsencrypt": false,
+    "enable_https": false,
+    "http_addr": ":8080",
+    "https_addr": ":8443"
+}

@@ -18,7 +18,7 @@ func (u UserName) Bytes() []byte {
 // APIKey represents an API Key
 type APIKey string
 
-// Bytes returns the username as a byte slice.
+// Bytes returns the username as as byte slice.
 func (k APIKey) Bytes() []byte {
 	return []byte(k)
 }

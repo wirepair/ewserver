@@ -2,7 +2,7 @@ package ewserver
 
 import (
 	"crypto/rand"
-	"encoding/hex"
+	"encoding/base64"
 )
 
 // GenerateRandomBytes securely generates size bytes of random data
@@ -17,20 +17,20 @@ func GenerateRandomBytes(size int) ([]byte, error) {
 	return b, nil
 }
 
-// GenerateAPIKey for API usage
-func GenerateAPIKey() (APIKey, error) {
-	key, err := GenerateRandomBytes(256)
+// GenerateRandomString generates a random string
+func GenerateRandomString(size int) (string, error) {
+	b, err := GenerateRandomBytes(size)
 	if err != nil {
 		return "", err
 	}
-	return APIKey(hex.EncodeToString(key)), nil
+	return base64.StdEncoding.EncodeToString(b), nil
 }
 
-// GenerateRandomPassword for initial user (and allow them to change)
-func GenerateRandomPassword(size int) (string, error) {
-	passwd, err := GenerateRandomBytes(32)
+// GenerateAPIKey for API usage
+func GenerateAPIKey() (APIKey, error) {
+	key, err := GenerateRandomString(64)
 	if err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(passwd), nil
+	return APIKey(key), nil
 }

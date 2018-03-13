@@ -22,7 +22,7 @@ func NewUserService(db *bolt.DB) *UserService {
 	return u
 }
 
-// Init the user bucket
+// Init the userBucket
 func (u *UserService) Init() error {
 	return u.DB.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(userBucket))
@@ -71,6 +71,49 @@ func (u *UserService) ChangePassword(userName ewserver.UserName, current, new st
 	if err := bcrypt.CompareHashAndPassword(validUser.Password, []byte(current)); err != nil {
 		tx.Rollback()
 		return ewserver.ErrInvalidPassword
+	}
+
+	if validUser.Password, err = u.hashPassword([]byte(new)); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	encodedUser, err := validUser.Encode()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := bucket.Put(validUser.UserName.Bytes(), encodedUser); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// ResetPassword of a user, provided they exist
+func (u *UserService) ResetPassword(userName ewserver.UserName, new string) error {
+	var validUser *ewserver.User
+
+	// Do everything in a writable transaction so there's no oddness with getting users while updating.
+	tx, err := u.DB.Begin(true)
+	if err != nil {
+		return err
+	}
+
+	bucket := tx.Bucket([]byte(userBucket))
+
+	userBytes := bucket.Get(userName.Bytes())
+	if userBytes == nil {
+		tx.Rollback()
+		return ewserver.ErrUserNotFound
+	}
+
+	validUser, err = ewserver.DecodeUser(userBytes)
+	if err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	if validUser.Password, err = u.hashPassword([]byte(new)); err != nil {

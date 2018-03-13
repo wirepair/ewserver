@@ -8,6 +8,8 @@ import (
 // APIUser represents an api user
 type APIUser struct {
 	Key         APIKey
+	Name        string 
+	ID          []byte
 	LastAddress string
 	Roles       []*Role
 }
@@ -42,6 +44,7 @@ func DecodeAPIUser(apiUserBytes []byte) (*APIUser, error) {
 type APIUserService interface {
 	Create(u *APIUser) error
 	APIUser(Key APIKey) (*APIUser, error)
+	APIUserByID(ID []byte) (*APIUser, error)
 	APIUsers() ([]*APIUser, error)
 	Delete(Key APIKey) error
 }

@@ -226,6 +226,48 @@ func TestUserService_ChangePassword(t *testing.T) {
 	}
 }
 
+func TestUserService_ResetPassword(t *testing.T) {
+	dbFileName, err := testTempDbFileName("testdata/")
+	if err != nil {
+		t.Fatalf("error opening db file for testing")
+	}
+	defer testRemoveDbFile(dbFileName, t)
+
+	db := testOpenDb(dbFileName, t)
+	defer testCloseDb(db, t)
+
+	service := boltdb.NewUserService(db.DB())
+	if err := service.Init(); err != nil {
+		t.Fatalf("error initializing user service: %s\n", err)
+	}
+
+	// try not in database yet
+	if err := service.ResetPassword(testUserName, "not in db yet"); err != nil && err != ewserver.ErrUserNotFound {
+		t.Fatalf("error changing password expected not found got: %s\n", err)
+	}
+
+	testCreateUser(service, t)
+
+	user, err := service.User(ewserver.UserName(testUserName))
+	if err != nil {
+		t.Fatalf("error getting user: %s\n", err)
+	}
+
+	if err := service.ResetPassword(user.UserName, "newpassword"); err != nil {
+		t.Fatalf("error changing password: %s\n", err)
+	}
+
+	// try old password
+	if _, err := service.Authenticate(user.UserName, testPassword); err != ewserver.ErrInvalidPassword {
+		t.Fatalf("error old password should have returned invalid password error got: %s\n", err)
+	}
+
+	// try new password
+	if _, err := service.Authenticate(user.UserName, "newpassword"); err != nil {
+		t.Fatalf("error new password did not authenticate user: %s\n", err)
+	}
+}
+
 func TestUserService_Delete(t *testing.T) {
 	dbFileName, err := testTempDbFileName("testdata/")
 	if err != nil {
