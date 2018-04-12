@@ -2,6 +2,15 @@
 
 
 [[projects]]
+  name = "github.com/alexedwards/scs"
+  packages = [
+    ".",
+    "stores/cookiestore"
+  ]
+  revision = "a01923edcb7f83c0c6ae7e70ad03f293e6ec9e26"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/boltdb/bolt"
   packages = ["."]
   revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
@@ -42,13 +51,22 @@
   version = "v1.1"
 
 [[projects]]
+  name = "github.com/wirepair/scs"
+  packages = ["stores/boltstore"]
+  revision = "a01923edcb7f83c0c6ae7e70ad03f293e6ec9e26"
+  version = "v1.3.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
     "acme",
     "acme/autocert",
     "bcrypt",
-    "blowfish"
+    "blowfish",
+    "nacl/secretbox",
+    "poly1305",
+    "salsa20/salsa"
   ]
   revision = "650f4a345ab4e5b245a3034b110ebc7299e68186"
 
@@ -73,6 +91,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "155a46cc764b8dd00b237ea07f917d6a97a6e968ec108de6c2a4934682ace53c"
+  inputs-digest = "a91800f2d46192ed00c56a0904e303d404d3507ed2907da80a96542f2da4194d"
   solver-name = "gps-cdcl"
   solver-version = 1

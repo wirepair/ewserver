@@ -30,8 +30,9 @@ func RegisterAdminAPIRoutes(apiUserService ewserver.APIUserService, routes *gin.
 	adminRoutes.DELETE("/delete/:id", AdminDeleteAPIUser(apiUserService, e))
 }
 
+// RegisterAuthnRoutes registers the authentication (login/logout) routes
 func RegisterAuthnRoutes(authnService ewserver.AuthnService, routes *gin.RouterGroup, e *gin.Engine) {
 	authRoutes := routes.Group("/user")
-	authRoutes.POST("/login", Auth(authnService, e))
+	authRoutes.POST("/login", Authenticate(authnService, e))
 	authRoutes.GET("/logout", Logout(authnService, e))
 }

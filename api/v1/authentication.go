@@ -5,8 +5,8 @@ import (
 	"github.com/wirepair/ewserver/ewserver"
 )
 
-// Auth a user to create a session
-func Auth(authnService ewserver.AuthnService, e *gin.Engine) gin.HandlerFunc {
+// Authenticate a user to create a session
+func Authenticate(authnService ewserver.AuthnService, e *gin.Engine) gin.HandlerFunc {
 	type login struct {
 		UserName ewserver.UserName
 		Password string

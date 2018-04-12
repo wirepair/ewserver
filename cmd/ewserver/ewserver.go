@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/wirepair/ewserver/store/boltdb"
 
@@ -21,7 +20,7 @@ func init() {
 	flag.StringVar(&configPath, "config", "config/server.json", "path to server config json file")
 }
 
-// main runs the server
+// main runs the HTTP(s) server
 func main() {
 	flag.Parse()
 
@@ -45,11 +44,11 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
 	routes := e.Group("v1")
+	routes.Use()
 	v1.RegisterAdminRoutes(userService, routes, e)
 	v1.RegisterAdminAPIRoutes(apiUserService, routes, e)
 
 	if serverConfig.EnableHTTPS {
-		createCacheDir(serverConfig)
 		go log.Fatal(runWithManager(e, serverConfig))
 	}
 
@@ -71,18 +70,4 @@ func runWithManager(e *gin.Engine, serverConfig *ServerConfig) error {
 		Handler:   e,
 	}
 	return s.ListenAndServeTLS("", "")
-}
-
-// createCacheDir for lets encrypt
-func createCacheDir(serverConfig *ServerConfig) {
-	if fileInfo, err := os.Stat(serverConfig.CacheDir); err == nil {
-		if fileInfo.IsDir() {
-			return
-		}
-		log.Fatalf("error cache folder is not a directory: %s\n", err)
-	}
-
-	if err := os.MkdirAll(serverConfig.CacheDir, 0700); err != nil {
-		log.Fatalf("error creating cache directory: %s\n", err)
-	}
 }
