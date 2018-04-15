@@ -5,12 +5,20 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/wirepair/ewserver/store/boltdb"
+	"github.com/wirepair/bolt-adapter"
 
+	"github.com/casbin/casbin"
+
+	"github.com/alexedwards/scs"
 	"github.com/gin-gonic/gin"
-
 	"github.com/wirepair/ewserver/api/v1"
+	"github.com/wirepair/ewserver/api/v1/middleware"
+	"github.com/wirepair/ewserver/internal/authz/casbinauth"
+	"github.com/wirepair/ewserver/internal/session/scssession"
+	"github.com/wirepair/ewserver/store/boltdb"
+	"github.com/wirepair/scs/stores/boltstore"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -41,12 +49,28 @@ func main() {
 		log.Fatalf("error initializing APIUserService: %s\n", err)
 	}
 
+	// initialize sessions
+	sessionStore := boltstore.New(db.DB(), time.Minute)
+	manager := scs.NewManager(sessionStore)
+	sessions := scssession.New(manager)
+
+	// initialize authz
+	boltauth := boltadapter.NewAdapter(db.DB())
+	enforcer := casbin.NewEnforcer(serverConfig.AuthPolicyPath, boltauth)
+	authorizer := casbinauth.New(enforcer, apiUserService, sessions)
+
+	// setup server
 	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
 	routes := e.Group("v1")
-	routes.Use()
-	v1.RegisterAdminRoutes(userService, routes, e)
-	v1.RegisterAdminAPIRoutes(apiUserService, routes, e)
+	v1.RegisterAuthnRoutes(userService, routes, e)
+
+	adminRoutes := routes.Group("/admin/users")
+	adminRoutes.Use(middleware.Require(authorizer))
+	v1.RegisterAdminRoutes(userService, adminRoutes, e)
+
+	apiAdminRoutes := routes.Group("/admin/api_users")
+	v1.RegisterAdminAPIRoutes(apiUserService, apiAdminRoutes, e)
 
 	if serverConfig.EnableHTTPS {
 		go log.Fatal(runWithManager(e, serverConfig))

@@ -1,9 +1,20 @@
 package v1
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/wirepair/ewserver/ewserver"
 )
+
+// LoginPage displays the login page to the user
+func LoginPage(e *gin.Engine) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.HTML(http.StatusOK, "user/login.tmpl", gin.H{
+			"title": "Login",
+		})
+	}
+}
 
 // Authenticate a user to create a session
 func Authenticate(authnService ewserver.AuthnService, e *gin.Engine) gin.HandlerFunc {

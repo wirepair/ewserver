@@ -11,10 +11,10 @@ import (
 
 // ServerConfig holds various configuration data for the top level service
 type ServerConfig struct {
-	CacheDir       string        `json:"cache_dir"`    // for lets encrypt
-	StoreConfig    *store.Config `json:"store_config"` // the store configuration options
-	Host           string        `json:"host"`         // Our hostname or IP address
-	CookieKey      string        `json:"cookie_key"`
+	CacheDir       string        `json:"cache_dir"`       // for lets encrypt
+	StoreConfig    *store.Config `json:"store_config"`    // the store configuration options
+	Host           string        `json:"host"`            // Our hostname or IP address
+	AuthPolicyPath string        `json:"auth_policy"`     // path to our authorization policy
 	UseLetsEncrypt bool          `json:"use_letsencrypt"` // use lets encrypt based TLS.
 	EnableHTTPS    bool          `json:"enable_https"`    // if we want to enable https + letsencrypt
 	HTTPAddr       string        `json:"http_addr"`       // the http address to bind to, like :8080

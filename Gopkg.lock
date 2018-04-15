@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
+  version = "v3.0.0"
+
+[[projects]]
   name = "github.com/alexedwards/scs"
   packages = [
     ".",
@@ -15,6 +21,21 @@
   packages = ["."]
   revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
   version = "v1.3.1"
+
+[[projects]]
+  name = "github.com/casbin/casbin"
+  packages = [
+    ".",
+    "config",
+    "file-adapter",
+    "model",
+    "persist",
+    "rbac",
+    "rbac/default-role-manager",
+    "util"
+  ]
+  revision = "3a17f2855cc12ad36fd614c590b9d18f46dfd65d"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -49,6 +70,12 @@
   packages = ["codec"]
   revision = "9831f2c3ac1068a78f50999a30db84270f647af6"
   version = "v1.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/wirepair/bolt-adapter"
+  packages = ["."]
+  revision = "6ee457f1efd9cc581f65856067dfd77e761c2475"
 
 [[projects]]
   name = "github.com/wirepair/scs"
@@ -91,6 +118,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a91800f2d46192ed00c56a0904e303d404d3507ed2907da80a96542f2da4194d"
+  inputs-digest = "486f0d929b8961e68d0204c0dce2dc813b75e8b636de48efe0fe84892f34ab02"
   solver-name = "gps-cdcl"
   solver-version = 1

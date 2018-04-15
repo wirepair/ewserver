@@ -1,4 +1,4 @@
-package scs
+package scssession
 
 import (
 	"bytes"
@@ -244,7 +244,7 @@ func testAddStringHandler(sessions *Sessions, t *testing.T) http.HandlerFunc {
 
 func testGetStringHandler(sessions *Sessions, t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		result := sessions.GetString(w, req, "test")
+		result := sessions.GetString(req, "test")
 		if result != "blah" {
 			t.Fatalf("expected %s got %s\n", "blah", result)
 		}
@@ -254,7 +254,7 @@ func testGetStringHandler(sessions *Sessions, t *testing.T) http.HandlerFunc {
 
 func testGetStringEmptyHandler(sessions *Sessions, t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		result := sessions.GetString(w, req, "test")
+		result := sessions.GetString(req, "test")
 		if result != "" {
 			t.Fatalf("expected empty string got %s\n", result)
 		}
