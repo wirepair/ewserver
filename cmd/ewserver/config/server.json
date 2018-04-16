@@ -1,5 +1,6 @@
 {
     "cache_dir": "data",
+    "auth_policy": "config/casbin_model.conf",
     "store_config": {
         "options": {
             "database": "ewserver.dat"

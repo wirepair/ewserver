@@ -11,6 +11,7 @@ func Require(authorizer authz.Authorizer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if authorizer.Authorize(c.Request) {
 			c.Next()
+			return
 		}
 		c.Redirect(301, v1.LoginPath)
 	}

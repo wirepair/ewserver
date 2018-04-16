@@ -5,10 +5,13 @@ import (
 	"encoding/gob"
 )
 
+// APIKeyHeader is the name of the api key required for API requests
+const APIKeyHeader = "x-api-key"
+
 // APIUser represents an api user
 type APIUser struct {
 	Key         APIKey
-	Name        string 
+	Name        string
 	ID          []byte
 	LastAddress string
 	Roles       []*Role

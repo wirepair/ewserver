@@ -23,9 +23,11 @@ import (
 )
 
 var configPath string
+var debug bool
 
 func init() {
 	flag.StringVar(&configPath, "config", "config/server.json", "path to server config json file")
+	flag.BoolVar(&debug, "debug", true, "debug mode")
 }
 
 // main runs the HTTP(s) server
@@ -59,9 +61,19 @@ func main() {
 	enforcer := casbin.NewEnforcer(serverConfig.AuthPolicyPath, boltauth)
 	authorizer := casbinauth.New(enforcer, apiUserService, sessions)
 
+	if debug {
+		gin.SetMode(gin.DebugMode)
+		// allow admin access to everything under admin
+		enforcer.AddPolicy("admin", "/v1/api/admin/", "*")
+		// add the testuser to the apiusers role
+		enforcer.AddGroupingPolicy("admin", "admin")
+		boltauth.SavePolicy(enforcer.GetModel())
+	}
+
 	// setup server
-	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
+	e.Use(middleware.EnsureSession(sessions))
+
 	routes := e.Group("v1")
 	v1.RegisterAuthnRoutes(userService, routes, e)
 

@@ -49,3 +49,4 @@ Temporary Items
 *.exe
 .vscode/arduino.json
 .vscode/c_cpp_properties.json
+cmd/ewserver/ewserver.dat

@@ -9,7 +9,6 @@ import (
 )
 
 const cookieName = "session"
-const apiKeyHeader = "x-api-key"
 
 // CasbinAuthorizer uses casbin to authorize requests
 type CasbinAuthorizer struct {
@@ -26,7 +25,7 @@ func New(enforcer *casbin.Enforcer, apiUserService ewserver.APIUserService, sess
 // Authorize validates the user data from a request is authorized to access a resource
 func (a *CasbinAuthorizer) Authorize(r *http.Request) bool {
 	// Check API based auth first
-	apiKey := r.Header.Get(apiKeyHeader)
+	apiKey := r.Header.Get(ewserver.APIKeyHeader)
 
 	// if apikey is not empty and they are authorized, return true.
 	if apiKey != "" && a.APIAuthorize(r, apiKey) {
