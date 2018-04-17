@@ -9,7 +9,6 @@ import (
 // EnsureSession exists and it's bound to user (provided x-api-key does not exist)
 func EnsureSession(sessions session.Manager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		// Check if request has API header first
 		apiKey := c.GetHeader(ewserver.APIKeyHeader)
 		if apiKey != "" {
@@ -22,6 +21,8 @@ func EnsureSession(sessions session.Manager) gin.HandlerFunc {
 			user.UserName = "anonymous"
 			sessions.Add(c.Writer, c.Request, "user", user)
 		}
+		// Add the session to the context
+		c.Set("sessions", sessions)
 		c.Next()
 	}
 }

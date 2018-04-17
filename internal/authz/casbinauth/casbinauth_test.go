@@ -27,7 +27,7 @@ func TestCasbinAuthorizer_Authorize(t *testing.T) {
 	defer testCloseDb(db, t)
 
 	adapter := boltadapter.NewAdapter(db.DB())
-	enforcer := casbin.NewEnforcer("testdata/rbac_model.conf", adapter)
+	enforcer := casbin.NewSyncedEnforcer("testdata/rbac_model.conf", adapter)
 
 	// allow 'apiusers' role to access /api/ via GET
 	enforcer.AddPolicy("apiusers", "/api/", "GET")
@@ -47,7 +47,7 @@ func TestCasbinAuthorizer_Authorize(t *testing.T) {
 	user := &ewserver.User{}
 
 	usapi := &mock.APIUserService{}
-	auth := New(enforcer, usapi, sessions)
+	auth := NewAuthorizer(enforcer, usapi, sessions)
 	req := httptest.NewRequest("GET", "http://ewserver/api/", nil)
 
 	sessions.LoadFn(req, "test", user)
@@ -77,6 +77,51 @@ func TestCasbinAuthorizer_Authorize(t *testing.T) {
 	req = httptest.NewRequest("GET", "http://ewserver/api/../notapi", nil)
 	if auth.Authorize(req) {
 		t.Fatalf("error GET /notapi/ (via traversal) should be denied.\n")
+	}
+}
+
+func TestCasbinAuthorizer_Authorize2(t *testing.T) {
+	dbFileName, err := testTempDbFileName("testdata/")
+	if err != nil {
+		t.Fatalf("error opening db file for testing")
+	}
+	defer testRemoveDbFile(dbFileName, t)
+
+	db := testOpenDb(dbFileName, t)
+	defer testCloseDb(db, t)
+
+	adapter := boltadapter.NewAdapter(db.DB())
+	enforcer := casbin.NewSyncedEnforcer("testdata/rbac_model.conf", adapter)
+	enforcer.AddPolicy("admin", "/", ".*")
+	enforcer.AddPolicy("apiuser", "/v1/api/", "(GET|POST)")
+	// only allow anonymous to access the top folder
+	enforcer.AddPolicy("anonymous", "/:", "(GET|POST)")
+	// add root to the admin role
+	enforcer.AddGroupingPolicy("root", "admin")
+	sessions := &mock.Sessions{}
+	sessions.LoadFn = func(req *http.Request, key string, val interface{}) error {
+		if user, ok := val.(*ewserver.User); ok {
+			user.UserName = "anonymous"
+		}
+		return nil
+	}
+	user := &ewserver.User{}
+	t.Logf("%#v\n", enforcer.GetNamedPolicy("p"))
+	usapi := &mock.APIUserService{}
+	auth := NewAuthorizer(enforcer, usapi, sessions)
+	req := httptest.NewRequest("GET", "http://ewserver/v1/admin/users/all_details", nil)
+
+	sessions.LoadFn(req, "test", user)
+
+	if auth.Authorize(req) {
+		t.Fatalf("error GET should not be authorized\n")
+	}
+
+	req = httptest.NewRequest("GET", "http://ewserver/static/", nil)
+
+	sessions.LoadFn(req, "test", user)
+	if !auth.Authorize(req) {
+		t.Fatalf("error GET should be authorized\n")
 	}
 }
 

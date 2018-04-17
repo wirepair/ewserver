@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/wirepair/ewserver/api/v1"
 	"github.com/wirepair/ewserver/api/v1/middleware"
+	"github.com/wirepair/ewserver/ewserver"
 	"github.com/wirepair/ewserver/internal/authz/casbinauth"
 	"github.com/wirepair/ewserver/internal/session/scssession"
 	"github.com/wirepair/ewserver/store/boltdb"
@@ -53,36 +54,38 @@ func main() {
 
 	// initialize sessions
 	sessionStore := boltstore.New(db.DB(), time.Minute)
-	manager := scs.NewManager(sessionStore)
-	sessions := scssession.New(manager)
+	scsManager := scs.NewManager(sessionStore)
+	sessions := scssession.New(scsManager)
 
 	// initialize authz
 	boltauth := boltadapter.NewAdapter(db.DB())
-	enforcer := casbin.NewEnforcer(serverConfig.AuthPolicyPath, boltauth)
-	authorizer := casbinauth.New(enforcer, apiUserService, sessions)
+	enforcer := casbin.NewSyncedEnforcer(serverConfig.AuthPolicyPath, boltauth)
+	authorizer := casbinauth.NewAuthorizer(enforcer, apiUserService, sessions)
+
+	roleService := casbinauth.NewRoleService(enforcer)
+	services := ewserver.NewServices(userService, apiUserService, roleService)
 
 	if debug {
 		gin.SetMode(gin.DebugMode)
-		// allow admin access to everything under admin
-		enforcer.AddPolicy("admin", "/v1/api/admin/", "*")
-		// add the testuser to the apiusers role
-		enforcer.AddGroupingPolicy("admin", "admin")
+		// allow admin access to everything
+		enforcer.AddPolicy("admin", "/", ".*")
+		enforcer.AddPolicy("apiuser", "/v1/api/:", ".*")
+		// only allow anonymous to access the top folder
+		enforcer.AddPolicy("anonymous", "/:", "(GET|POST)")
+		// add root to the admin role
+		enforcer.AddGroupingPolicy("root", "admin")
 		boltauth.SavePolicy(enforcer.GetModel())
+		root := &ewserver.User{UserName: "root"}
+		userService.Create(root, "password")
 	}
 
 	// setup server
 	e := gin.Default()
 	e.Use(middleware.EnsureSession(sessions))
+	e.Use(middleware.Require(authorizer))
 
-	routes := e.Group("v1")
-	v1.RegisterAuthnRoutes(userService, routes, e)
-
-	adminRoutes := routes.Group("/admin/users")
-	adminRoutes.Use(middleware.Require(authorizer))
-	v1.RegisterAdminRoutes(userService, adminRoutes, e)
-
-	apiAdminRoutes := routes.Group("/admin/api_users")
-	v1.RegisterAdminAPIRoutes(apiUserService, apiAdminRoutes, e)
+	v1.RegisterAuthnRoutes(userService, e)
+	v1.RegisterAdminRoutes(services, e)
 
 	if serverConfig.EnableHTTPS {
 		go log.Fatal(runWithManager(e, serverConfig))

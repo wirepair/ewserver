@@ -17,24 +17,29 @@ func default404(e *gin.Engine) gin.HandlerFunc {
 }
 
 // RegisterAdminRoutes for managing Users under /admin/users
-func RegisterAdminRoutes(userService ewserver.UserService, routes *gin.RouterGroup, e *gin.Engine) {
-	routes.GET("/details/:user", AdminUserDetails(userService, e))
-	routes.GET("/all_details", AdminUsersDetails(userService, e))
-	routes.PUT("/create", AdminCreateUser(userService, e))
-	routes.POST("/reset_password", AdminResetPassword(userService, e))
-	routes.DELETE("/delete/:user", AdminDeleteUser(userService, e))
-}
+func RegisterAdminRoutes(services *ewserver.Services, e *gin.Engine) {
+	// setup admin routes
+	apiRoutes := e.Group("v1")
+	userRoutes := apiRoutes.Group("/admin/users")
+	userRoutes.GET("/details/:user", AdminUserDetails(services.UserService, e))
+	userRoutes.GET("/all_details", AdminUsersDetails(services.UserService, e))
+	userRoutes.PUT("/create", AdminCreateUser(services.UserService, e))
+	userRoutes.POST("/reset_password", AdminResetPassword(services.UserService, e))
+	userRoutes.DELETE("/delete/:user", AdminDeleteUser(services.UserService, e))
 
-// RegisterAdminAPIRoutes for managing APIUsers under admin/api_users
-func RegisterAdminAPIRoutes(apiUserService ewserver.APIUserService, routes *gin.RouterGroup, e *gin.Engine) {
-	routes.GET("/details/:id", AdminAPIUserDetails(apiUserService, e))
-	routes.GET("/all_details", AdminAPIUsersDetails(apiUserService, e))
-	routes.PUT("/create", AdminCreateAPIUser(apiUserService, e))
-	routes.DELETE("/delete/:id", AdminDeleteAPIUser(apiUserService, e))
+	apiAdminRoutes := apiRoutes.Group("/admin/api_users")
+	apiAdminRoutes.GET("/details/:id", AdminAPIUserDetails(services.APIUserService, e))
+	apiAdminRoutes.GET("/all_details", AdminAPIUsersDetails(services.APIUserService, e))
+	apiAdminRoutes.PUT("/create", AdminCreateAPIUser(services.APIUserService, e))
+	apiAdminRoutes.DELETE("/delete/:id", AdminDeleteAPIUser(services.APIUserService, e))
+
+	roleRoutes := apiRoutes.Group("/admin/roles")
+	roleRoutes.GET("/groups", AdminGroups(services.RoleService, e))
 }
 
 // RegisterAuthnRoutes registers the authentication (login/logout) routes under /user
-func RegisterAuthnRoutes(authnService ewserver.AuthnService, routes *gin.RouterGroup, e *gin.Engine) {
+func RegisterAuthnRoutes(authnService ewserver.AuthnService, e *gin.Engine) {
+	routes := e.Group("/")
 	routes.GET(LoginPath, LoginPage(e))
 	routes.POST(LoginPath, Authenticate(authnService, e))
 	routes.GET("/logout", Logout(authnService, e))

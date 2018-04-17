@@ -5,14 +5,25 @@ import (
 	"encoding/gob"
 )
 
+// UserName represents an entity accessing, or acting on something
+type UserName string
+
+func (u UserName) String() string {
+	return string(u)
+}
+
+// Bytes returns the username as a byte slice.
+func (u UserName) Bytes() []byte {
+	return []byte(u)
+}
+
 // User represents a user with UI access
 type User struct {
-	UserName        UserName `json:"user_name"`
-	FirstName       string   `json:"first_name"`
-	LastName        string   `json:"last_name"`
-	LastAddress     string   `json:"last_address"`     // Last IP Address that authenticated for this user
-	RoleAssignments []string `json:"role_assignments"` // Roles this user is assigned to
-	Password        []byte   `json:"-"`                // Becareful with this field.
+	UserName    UserName `json:"user_name"`
+	FirstName   string   `json:"first_name"`
+	LastName    string   `json:"last_name"`
+	LastAddress string   `json:"last_address"` // Last IP Address that authenticated for this user
+	Password    []byte   `json:"-"`            // Becareful with this field.
 }
 
 // NewUser creates a new user

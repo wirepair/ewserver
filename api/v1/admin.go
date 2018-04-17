@@ -103,7 +103,6 @@ func AdminDeleteUser(userService ewserver.UserService, e *gin.Engine) gin.Handle
 
 // AdminAPIUserDetails returns the details of an API User
 func AdminAPIUserDetails(apiUserService ewserver.APIUserService, e *gin.Engine) gin.HandlerFunc {
-
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		user, err := apiUserService.APIUserByID([]byte(id))

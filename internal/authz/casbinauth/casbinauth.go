@@ -8,17 +8,15 @@ import (
 	"github.com/wirepair/ewserver/internal/session"
 )
 
-const cookieName = "session"
-
 // CasbinAuthorizer uses casbin to authorize requests
 type CasbinAuthorizer struct {
-	enforcer       *casbin.Enforcer
+	enforcer       *casbin.SyncedEnforcer
 	apiUserService ewserver.APIUserService
 	sessions       session.Manager
 }
 
 // New returns a new CasbinAuthorizer
-func New(enforcer *casbin.Enforcer, apiUserService ewserver.APIUserService, sessions session.Manager) *CasbinAuthorizer {
+func NewAuthorizer(enforcer *casbin.SyncedEnforcer, apiUserService ewserver.APIUserService, sessions session.Manager) *CasbinAuthorizer {
 	return &CasbinAuthorizer{enforcer: enforcer, apiUserService: apiUserService, sessions: sessions}
 }
 

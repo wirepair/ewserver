@@ -8,13 +8,20 @@ import (
 // APIKeyHeader is the name of the api key required for API requests
 const APIKeyHeader = "x-api-key"
 
+// APIKey represents an API Key
+type APIKey string
+
+// Bytes returns the API key as as byte slice.
+func (k APIKey) Bytes() []byte {
+	return []byte(k)
+}
+
 // APIUser represents an api user
 type APIUser struct {
 	Key         APIKey
 	Name        string
 	ID          []byte
 	LastAddress string
-	Roles       []*Role
 }
 
 // NewAPIUser from bytes

@@ -14,5 +14,6 @@ func Require(authorizer authz.Authorizer) gin.HandlerFunc {
 			return
 		}
 		c.Redirect(301, v1.LoginPath)
+		c.Abort()
 	}
 }
