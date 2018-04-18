@@ -50,3 +50,4 @@ Temporary Items
 .vscode/arduino.json
 .vscode/c_cpp_properties.json
 cmd/ewserver/ewserver.dat
+*.dat

@@ -10,10 +10,13 @@ const (
 	LoginPath = "/login"
 )
 
-func default404(e *gin.Engine) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(404, nil)
+func defaultReturn(err error, c *gin.Context) {
+	if err != nil {
+		c.JSON(500, gin.H{"error": err})
+		return
 	}
+
+	c.JSON(200, gin.H{"status": "OK"})
 }
 
 // RegisterAdminRoutes for managing Users under /admin/users
@@ -22,24 +25,30 @@ func RegisterAdminRoutes(services *ewserver.Services, e *gin.Engine) {
 	apiRoutes := e.Group("v1")
 	userRoutes := apiRoutes.Group("/admin/users")
 	userRoutes.GET("/details/:user", AdminUserDetails(services.UserService, e))
-	userRoutes.GET("/all_details", AdminUsersDetails(services.UserService, e))
+	userRoutes.GET("/list", AdminUsersDetails(services.UserService, e))
 	userRoutes.PUT("/create", AdminCreateUser(services.UserService, e))
 	userRoutes.POST("/reset_password", AdminResetPassword(services.UserService, e))
 	userRoutes.DELETE("/delete/:user", AdminDeleteUser(services.UserService, e))
 
 	apiAdminRoutes := apiRoutes.Group("/admin/api_users")
 	apiAdminRoutes.GET("/details/:id", AdminAPIUserDetails(services.APIUserService, e))
-	apiAdminRoutes.GET("/all_details", AdminAPIUsersDetails(services.APIUserService, e))
+	apiAdminRoutes.GET("/list", AdminAPIUsersDetails(services.APIUserService, e))
 	apiAdminRoutes.PUT("/create", AdminCreateAPIUser(services.APIUserService, e))
 	apiAdminRoutes.DELETE("/delete/:id", AdminDeleteAPIUser(services.APIUserService, e))
 
 	roleRoutes := apiRoutes.Group("/admin/roles")
-	roleRoutes.GET("/groups", AdminGroups(services.RoleService, e))
+	roleRoutes.GET("/list", AdminRoleList(services.RoleService, e))
+	roleRoutes.PUT("/permissions", AdminAddPermission(services.RoleService, e))
+	roleRoutes.DELETE("/permissions", AdminDeletePermission(services.RoleService, e))
+	roleRoutes.POST("/group", AdminAddUserToGroup(services.RoleService, e))
+	roleRoutes.DELETE("/group", AdminDeleteUserFromGroup(services.RoleService, e))
+
 }
 
 // RegisterAuthnRoutes registers the authentication (login/logout) routes under /user
 func RegisterAuthnRoutes(authnService ewserver.AuthnService, e *gin.Engine) {
 	routes := e.Group("/")
+	e.LoadHTMLGlob("../../web/templates/**/*")
 	routes.GET(LoginPath, LoginPage(e))
 	routes.POST(LoginPath, Authenticate(authnService, e))
 	routes.GET("/logout", Logout(authnService, e))

@@ -58,12 +58,8 @@ func AdminCreateUser(userService ewserver.UserService, e *gin.Engine) gin.Handle
 
 		log.Printf("%#v\n", user)
 
-		if err := userService.Create(&user.User, user.Password); err != nil {
-			c.JSON(500, gin.H{"error": err})
-			return
-		}
-
-		c.JSON(200, gin.H{"status": "OK"})
+		err := userService.Create(&user.User, user.Password)
+		defaultReturn(err, c)
 	}
 }
 
@@ -82,27 +78,24 @@ func AdminResetPassword(userService ewserver.UserService, e *gin.Engine) gin.Han
 			return
 		}
 
-		if err := userService.ResetPassword(passwordRequest.UserName, passwordRequest.NewPassword); err != nil {
-			c.JSON(500, gin.H{"error": err})
-			return
-		}
-		c.JSON(200, gin.H{"status": "OK"})
+		err := userService.ResetPassword(passwordRequest.UserName, passwordRequest.NewPassword)
+		defaultReturn(err, c)
 	}
 }
 
 // AdminDeleteUser deletes a user
 func AdminDeleteUser(userService ewserver.UserService, e *gin.Engine) gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		userName := c.Param("user")
-		if err := userService.Delete(ewserver.UserName(userName)); err != nil {
-			c.JSON(500, gin.H{"error": err})
-		}
-		c.JSON(200, gin.H{"status": "OK"})
+		err := userService.Delete(ewserver.UserName(userName))
+		defaultReturn(err, c)
 	}
 }
 
 // AdminAPIUserDetails returns the details of an API User
 func AdminAPIUserDetails(apiUserService ewserver.APIUserService, e *gin.Engine) gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		user, err := apiUserService.APIUserByID([]byte(id))
@@ -145,11 +138,8 @@ func AdminCreateAPIUser(apiUserService ewserver.APIUserService, e *gin.Engine) g
 
 		apiUser.Key = key
 
-		if err := apiUserService.Create(apiUser); err != nil {
-			c.JSON(500, gin.H{"error": err})
-			return
-		}
-		c.JSON(200, gin.H{"status": "OK"})
+		err = apiUserService.Create(apiUser)
+		defaultReturn(err, c)
 	}
 }
 
@@ -165,10 +155,7 @@ func AdminDeleteAPIUser(apiUserService ewserver.APIUserService, e *gin.Engine) g
 			return
 		}
 
-		if err := apiUserService.Delete(apiUser.Key); err != nil {
-			c.JSON(500, gin.H{"error": err})
-			return
-		}
-		c.JSON(200, gin.H{"status": "OK"})
+		err = apiUserService.Delete(apiUser.Key)
+		defaultReturn(err, c)
 	}
 }

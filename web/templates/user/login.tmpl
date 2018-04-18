@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>login</title>
+        <script>
+        "use strict;"
+        window.addEventListener('load', function() {
+            let submit = document.getElementById("submit");
+            submit.addEventListener('click', function(e) {
+                e.preventDefault();
+                let user = document.getElementById("username");
+                let pass = document.getElementById("password");
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        console.log("Response Received");
+                    }
+                }
+                xhr.open("POST","/login",true);
+                xhr.setRequestHeader("Content-type","application/json");
+                let data = {"username": user.value, "password": pass.value};
+                xhr.send(JSON.stringify(data));
+                return false;
+            })
+        });
+        </script>
+    </head>
+    <body>
+        <form action="#">
+            <label for="username">Username:</label><input type="text" name="username" id="username"/>
+            <label for="password">Password:</label><input type="password" name="password" id="password"/>
+            <button id="submit">submit</button>
+        </form>
+    </body>
+    </html>

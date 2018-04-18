@@ -1,6 +1,7 @@
 package casbinauth
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/casbin/casbin"
@@ -55,5 +56,6 @@ func (a *CasbinAuthorizer) UserAuthorize(r *http.Request, username string) bool 
 	subject := username
 	object := r.URL.Path
 	action := r.Method
+	log.Printf("authorization attempt for: %s %s %s\n", subject, object, action)
 	return a.enforcer.Enforce(subject, object, action)
 }

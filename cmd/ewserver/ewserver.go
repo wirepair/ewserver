@@ -12,6 +12,7 @@ import (
 	"github.com/casbin/casbin"
 
 	"github.com/alexedwards/scs"
+	"github.com/alexedwards/scs/stores/boltstore"
 	"github.com/gin-gonic/gin"
 	"github.com/wirepair/ewserver/api/v1"
 	"github.com/wirepair/ewserver/api/v1/middleware"
@@ -19,7 +20,6 @@ import (
 	"github.com/wirepair/ewserver/internal/authz/casbinauth"
 	"github.com/wirepair/ewserver/internal/session/scssession"
 	"github.com/wirepair/ewserver/store/boltdb"
-	"github.com/wirepair/scs/stores/boltstore"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -81,8 +81,7 @@ func main() {
 
 	// setup server
 	e := gin.Default()
-	e.Use(middleware.EnsureSession(sessions))
-	e.Use(middleware.Require(authorizer))
+	e.Use(middleware.EnsureSession(sessions), middleware.Require(authorizer))
 
 	v1.RegisterAuthnRoutes(userService, e)
 	v1.RegisterAdminRoutes(services, e)

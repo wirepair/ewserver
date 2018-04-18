@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/wirepair/ewserver/internal/session"
@@ -12,7 +13,8 @@ import (
 // LoginPage displays the login page to the user
 func LoginPage(e *gin.Engine) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.HTML(http.StatusOK, "user/login.tmpl", gin.H{
+		log.Printf("WTF")
+		c.HTML(http.StatusOK, "login.tmpl", gin.H{
 			"title": "Login",
 		})
 	}
@@ -29,6 +31,7 @@ func Authenticate(authnService ewserver.AuthnService, e *gin.Engine) gin.Handler
 		sessions := c.MustGet("sessions").(session.Manager)
 		attempt := &login{}
 
+		log.Printf("Attempting to authenticate %s\n", attempt.UserName)
 		if err := c.BindJSON(attempt); err != nil {
 			c.JSON(500, gin.H{"error": err})
 			return
