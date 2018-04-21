@@ -38,6 +38,7 @@ $RECYCLE.BIN/
 .TemporaryItems
 .Trashes
 .VolumeIcon.icns
+.vscode
 
 # Directories potentially created on remote AFP share
 .AppleDB
@@ -47,7 +48,6 @@ Temporary Items
 .apdisk
 
 *.exe
-.vscode/arduino.json
-.vscode/c_cpp_properties.json
 cmd/ewserver/ewserver.dat
 *.dat
+cmd/ewserver/ewserver.dat.lock
