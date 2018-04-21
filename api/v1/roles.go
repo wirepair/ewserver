@@ -6,7 +6,7 @@ import (
 )
 
 // AdminRoleList users and groups
-func AdminRoleList(roleService ewserver.RoleService, e *gin.Engine) gin.HandlerFunc {
+func AdminRoleList(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		groups := roleService.Groups()
 		users := roleService.Users()
@@ -16,7 +16,7 @@ func AdminRoleList(roleService ewserver.RoleService, e *gin.Engine) gin.HandlerF
 }
 
 // AdminAddPermission add a new permission to user or group
-func AdminAddPermission(roleService ewserver.RoleService, e *gin.Engine) gin.HandlerFunc {
+func AdminAddPermission(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type permission struct {
 		Subject string `json:"subject"`
 		Object  string `json:"object"`
@@ -36,7 +36,7 @@ func AdminAddPermission(roleService ewserver.RoleService, e *gin.Engine) gin.Han
 }
 
 // AdminDeletePermission delete a permission
-func AdminDeletePermission(roleService ewserver.RoleService, e *gin.Engine) gin.HandlerFunc {
+func AdminDeletePermission(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type permission struct {
 		Subject string `json:"subject"`
 		Object  string `json:"object"`
@@ -57,7 +57,7 @@ func AdminDeletePermission(roleService ewserver.RoleService, e *gin.Engine) gin.
 }
 
 // AdminAddUserToGroup add a user to a group
-func AdminAddUserToGroup(roleService ewserver.RoleService, e *gin.Engine) gin.HandlerFunc {
+func AdminAddUserToGroup(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type role struct {
 		User  string `json:"user"`
 		Group string `json:"group"`
@@ -76,7 +76,7 @@ func AdminAddUserToGroup(roleService ewserver.RoleService, e *gin.Engine) gin.Ha
 }
 
 // AdminDeleteUserFromGroup delete a user from a group
-func AdminDeleteUserFromGroup(roleService ewserver.RoleService, e *gin.Engine) gin.HandlerFunc {
+func AdminDeleteUserFromGroup(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type role struct {
 		User  string `json:"user"`
 		Group string `json:"group"`

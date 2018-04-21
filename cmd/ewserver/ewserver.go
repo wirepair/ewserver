@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/wirepair/bolt-adapter"
@@ -18,6 +19,7 @@ import (
 	"github.com/wirepair/ewserver/api/v1/middleware"
 	"github.com/wirepair/ewserver/ewserver"
 	"github.com/wirepair/ewserver/internal/authz/casbinauth"
+	"github.com/wirepair/ewserver/internal/logger"
 	"github.com/wirepair/ewserver/internal/session/scssession"
 	"github.com/wirepair/ewserver/store/boltdb"
 	"golang.org/x/crypto/acme/autocert"
@@ -51,6 +53,8 @@ func main() {
 	if err := apiUserService.Init(); err != nil {
 		log.Fatalf("error initializing APIUserService: %s\n", err)
 	}
+	// initialize logging
+	logService := logger.New(os.Stdout)
 
 	// initialize sessions
 	sessionStore := boltstore.New(db.DB(), time.Minute)
@@ -60,10 +64,10 @@ func main() {
 	// initialize authz
 	boltauth := boltadapter.NewAdapter(db.DB())
 	enforcer := casbin.NewSyncedEnforcer(serverConfig.AuthPolicyPath, boltauth)
-	authorizer := casbinauth.NewAuthorizer(enforcer, apiUserService, sessions)
+	authorizer := casbinauth.NewAuthorizer(enforcer, apiUserService, sessions, logService)
 
 	roleService := casbinauth.NewRoleService(enforcer)
-	services := ewserver.NewServices(userService, apiUserService, roleService)
+	services := ewserver.NewServices(userService, apiUserService, roleService, logService)
 
 	if debug {
 		gin.SetMode(gin.DebugMode)
@@ -83,7 +87,7 @@ func main() {
 	e := gin.Default()
 	e.Use(middleware.EnsureSession(sessions), middleware.Require(authorizer))
 
-	v1.RegisterAuthnRoutes(userService, e)
+	v1.RegisterAuthnRoutes(userService, logService, e)
 	v1.RegisterAdminRoutes(services, e)
 
 	if serverConfig.EnableHTTPS {

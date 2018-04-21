@@ -8,7 +8,7 @@ import (
 )
 
 // AdminUserDetails returns the details of a single user
-func AdminUserDetails(userService ewserver.UserService, e *gin.Engine) gin.HandlerFunc {
+func AdminUserDetails(userService ewserver.UserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userName := c.Param("user")
 		user, err := userService.User(ewserver.UserName(userName))
@@ -24,7 +24,7 @@ func AdminUserDetails(userService ewserver.UserService, e *gin.Engine) gin.Handl
 }
 
 // AdminUsersDetails returns the details of all users
-func AdminUsersDetails(userService ewserver.UserService, e *gin.Engine) gin.HandlerFunc {
+func AdminUsersDetails(userService ewserver.UserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		users, err := userService.Users()
 		if err != nil {
@@ -41,7 +41,7 @@ func AdminUsersDetails(userService ewserver.UserService, e *gin.Engine) gin.Hand
 }
 
 // AdminCreateUser creates a new user.
-func AdminCreateUser(userService ewserver.UserService, e *gin.Engine) gin.HandlerFunc {
+func AdminCreateUser(userService ewserver.UserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	// embed the ewserver.User but expose/override the Password as a string to allow it to be read
 	// from JSON
 	type newUser struct {
@@ -64,7 +64,7 @@ func AdminCreateUser(userService ewserver.UserService, e *gin.Engine) gin.Handle
 }
 
 // AdminResetPassword changes the password for the specified user
-func AdminResetPassword(userService ewserver.UserService, e *gin.Engine) gin.HandlerFunc {
+func AdminResetPassword(userService ewserver.UserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type passwordReset struct {
 		UserName    ewserver.UserName `json:"user_name"`
 		NewPassword string            `json:"password"`
@@ -84,7 +84,7 @@ func AdminResetPassword(userService ewserver.UserService, e *gin.Engine) gin.Han
 }
 
 // AdminDeleteUser deletes a user
-func AdminDeleteUser(userService ewserver.UserService, e *gin.Engine) gin.HandlerFunc {
+func AdminDeleteUser(userService ewserver.UserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		userName := c.Param("user")
@@ -94,7 +94,7 @@ func AdminDeleteUser(userService ewserver.UserService, e *gin.Engine) gin.Handle
 }
 
 // AdminAPIUserDetails returns the details of an API User
-func AdminAPIUserDetails(apiUserService ewserver.APIUserService, e *gin.Engine) gin.HandlerFunc {
+func AdminAPIUserDetails(apiUserService ewserver.APIUserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -108,7 +108,7 @@ func AdminAPIUserDetails(apiUserService ewserver.APIUserService, e *gin.Engine) 
 }
 
 // AdminAPIUsersDetails returns the details of all API Users
-func AdminAPIUsersDetails(apiUserService ewserver.APIUserService, e *gin.Engine) gin.HandlerFunc {
+func AdminAPIUsersDetails(apiUserService ewserver.APIUserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		apiUsers, err := apiUserService.APIUsers()
@@ -121,7 +121,7 @@ func AdminAPIUsersDetails(apiUserService ewserver.APIUserService, e *gin.Engine)
 }
 
 // AdminCreateAPIUser adds a new API User, generates a new key prior to creating.
-func AdminCreateAPIUser(apiUserService ewserver.APIUserService, e *gin.Engine) gin.HandlerFunc {
+func AdminCreateAPIUser(apiUserService ewserver.APIUserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		apiUser := &ewserver.APIUser{}
@@ -144,7 +144,7 @@ func AdminCreateAPIUser(apiUserService ewserver.APIUserService, e *gin.Engine) g
 }
 
 // AdminDeleteAPIUser deletes the API key by first looking up the ID to get the APIKey.
-func AdminDeleteAPIUser(apiUserService ewserver.APIUserService, e *gin.Engine) gin.HandlerFunc {
+func AdminDeleteAPIUser(apiUserService ewserver.APIUserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		id := c.Param("id")

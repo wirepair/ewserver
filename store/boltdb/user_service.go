@@ -181,9 +181,32 @@ func (u *UserService) Create(user *ewserver.User, password string) error {
 		return ewserver.ErrUserAlreadyExists
 	}
 
+	if u.invalid(user) {
+		return ewserver.ErrInvalidUser
+	}
 	user.Password, err = u.hashPassword([]byte(password))
 	if err != nil {
 		return err
+	}
+
+	return u.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(userBucket))
+		userBytes, err := user.Encode()
+		if err != nil {
+			return err
+		}
+		return bucket.Put(user.UserName.Bytes(), userBytes)
+	})
+}
+
+// Update the user details
+func (u *UserService) Update(user *ewserver.User) error {
+	if exists, _ := u.User(user.UserName); exists == nil {
+		return ewserver.ErrUserAlreadyExists
+	}
+
+	if u.invalid(user) {
+		return ewserver.ErrInvalidUser
 	}
 
 	return u.DB.Update(func(tx *bolt.Tx) error {
@@ -206,4 +229,14 @@ func (u *UserService) Delete(userName ewserver.UserName) error {
 
 func (u *UserService) hashPassword(password []byte) ([]byte, error) {
 	return bcrypt.GenerateFromPassword(password, bcryptCost)
+}
+
+// invalid checks if the user or user fields are invalid. Implement any
+// additional validation you'd like here.
+func (u *UserService) invalid(user *ewserver.User) bool {
+	if user.UserName == "" {
+		return true
+	}
+
+	return false
 }

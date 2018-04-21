@@ -58,6 +58,7 @@ type UserService interface {
 	Init() error                                                        // Init the user service (prepare the tables/bucket whatever)
 	Authenticate(userName UserName, password string) (*User, error)     // Authenticate the user with provided password
 	Create(u *User, password string) error                              // Create the user with the supplied password
+	Update(u *User) error                                               // Update the user details
 	ResetPassword(userName UserName, new string) error                  // Reset the user's password (should only be admin level)
 	ChangePassword(userName UserName, current string, new string) error // ChangePassword for allowing users to change their password
 	Delete(userName UserName) error                                     // Delete the user (admin only)
@@ -68,6 +69,7 @@ type UserService interface {
 // AuthnService allows a user to authenticate or change their password
 type AuthnService interface {
 	Authenticate(userName UserName, password string) (*User, error)     // Authenticate the user with provided password
+	Update(u *User) error                                               // Update the user details (such as last login address)
 	ChangePassword(userName UserName, current string, new string) error // ChangePassword for allowing users to change their password
 	User(userName UserName) (*User, error)                              // User returns the entire user
 }

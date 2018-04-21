@@ -1,7 +1,6 @@
 package casbinauth
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/casbin/casbin"
@@ -14,10 +13,11 @@ type CasbinAuthorizer struct {
 	enforcer       *casbin.SyncedEnforcer
 	apiUserService ewserver.APIUserService
 	sessions       session.Manager
+	logger         ewserver.LogService
 }
 
-// New returns a new CasbinAuthorizer
-func NewAuthorizer(enforcer *casbin.SyncedEnforcer, apiUserService ewserver.APIUserService, sessions session.Manager) *CasbinAuthorizer {
+// NewAuthorizer returns a new CasbinAuthorizer
+func NewAuthorizer(enforcer *casbin.SyncedEnforcer, apiUserService ewserver.APIUserService, sessions session.Manager, logger ewserver.LogService) *CasbinAuthorizer {
 	return &CasbinAuthorizer{enforcer: enforcer, apiUserService: apiUserService, sessions: sessions}
 }
 
@@ -48,6 +48,7 @@ func (a *CasbinAuthorizer) APIAuthorize(r *http.Request, apiKey string) bool {
 	subject := user.Name
 	object := r.URL.Path
 	action := r.Method
+	a.logger.Info("apiuser authorization attempt", "subject", subject, "object", object, "action", action, "ipaddr", r.RemoteAddr)
 	return a.enforcer.Enforce(subject, object, action)
 }
 
@@ -56,6 +57,6 @@ func (a *CasbinAuthorizer) UserAuthorize(r *http.Request, username string) bool 
 	subject := username
 	object := r.URL.Path
 	action := r.Method
-	log.Printf("authorization attempt for: %s %s %s\n", subject, object, action)
+	a.logger.Info("user authorization attempt", "subject", subject, "object", object, "action", action, "ipaddr", r.RemoteAddr)
 	return a.enforcer.Enforce(subject, object, action)
 }

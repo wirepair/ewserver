@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/wirepair/ewserver/internal/session"
@@ -13,15 +12,14 @@ import (
 // LoginPage displays the login page to the user
 func LoginPage(e *gin.Engine) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Printf("WTF")
 		c.HTML(http.StatusOK, "login.tmpl", gin.H{
 			"title": "Login",
 		})
 	}
 }
 
-// Authenticate a user to create a session
-func Authenticate(authnService ewserver.AuthnService, e *gin.Engine) gin.HandlerFunc {
+// Authenticate a user to create a session, add the user to the session and update the user's last ip address if successful.
+func Authenticate(authnService ewserver.AuthnService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type login struct {
 		UserName ewserver.UserName
 		Password string
@@ -31,7 +29,6 @@ func Authenticate(authnService ewserver.AuthnService, e *gin.Engine) gin.Handler
 		sessions := c.MustGet("sessions").(session.Manager)
 		attempt := &login{}
 
-		log.Printf("Attempting to authenticate %s\n", attempt.UserName)
 		if err := c.BindJSON(attempt); err != nil {
 			c.JSON(500, gin.H{"error": err})
 			return
@@ -39,18 +36,24 @@ func Authenticate(authnService ewserver.AuthnService, e *gin.Engine) gin.Handler
 
 		user, err := authnService.Authenticate(attempt.UserName, attempt.Password)
 		if err != nil {
+			logService.Info("authentication failure", "user", attempt.UserName, "client", c.ClientIP())
 			c.JSON(401, gin.H{"error": err})
 			return
 		}
+		logService.Info("authentication success", "user", attempt.UserName, "client", c.ClientIP())
 
+		user.LastAddress = c.ClientIP()
+		authnService.Update(user)
+
+		// Renew session token and add user details to the session
 		sessions.Renew(c.Writer, c.Request)
 		sessions.Add(c.Writer, c.Request, "user", user)
-		c.JSON(200, gin.H{"user": user})
+		c.JSON(200, gin.H{"status": "OK"})
 	}
 }
 
 // Logout a user by destroying their session
-func Logout(authnService ewserver.AuthnService, e *gin.Engine) gin.HandlerFunc {
+func Logout(authnService ewserver.AuthnService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sessions := c.MustGet("sessions").(session.Manager)
 		sessions.Destroy(c.Writer, c.Request)

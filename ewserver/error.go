@@ -10,6 +10,7 @@ func (e Error) Error() string {
 // common errors
 const (
 	ErrUserNotFound      = Error("user not found")
+	ErrInvalidUser       = Error("invalid username or fields")
 	ErrUserAlreadyExists = Error("user already exists")
 	ErrInvalidPassword   = Error("invalid password for user")
 )
