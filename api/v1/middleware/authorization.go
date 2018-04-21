@@ -6,7 +6,7 @@ import (
 	"github.com/wirepair/ewserver/internal/authz"
 )
 
-// Require authorization token (api or session) and the specified role
+// Require authorization token (api or session)
 func Require(authorizer authz.Authorizer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if authorizer.Authorize(c.Request) {
