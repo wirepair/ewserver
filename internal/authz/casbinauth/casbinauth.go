@@ -17,8 +17,8 @@ type CasbinAuthorizer struct {
 }
 
 // NewAuthorizer returns a new CasbinAuthorizer
-func NewAuthorizer(enforcer *casbin.SyncedEnforcer, apiUserService ewserver.APIUserService, sessions session.Manager, logger ewserver.LogService) *CasbinAuthorizer {
-	return &CasbinAuthorizer{enforcer: enforcer, apiUserService: apiUserService, sessions: sessions}
+func NewAuthorizer(enforcer *casbin.SyncedEnforcer, apiUserService ewserver.APIUserService, sessions session.Manager, logService ewserver.LogService) *CasbinAuthorizer {
+	return &CasbinAuthorizer{enforcer: enforcer, apiUserService: apiUserService, sessions: sessions, logger: logService}
 }
 
 // Authorize validates the user data from a request is authorized to access a resource
