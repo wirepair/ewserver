@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	// ErrAddUserToGroup when unable to add a user to a group
-	ErrAddUserToGroup = errors.New("unable to add user to group")
-	// ErrDeleteUserFromGroup when we can't remove a user from a group
-	ErrDeleteUserFromGroup = errors.New("unable to remove user from group")
+	// ErrAddSubjectToRole when unable to add a user to a role
+	ErrAddSubjectToRole = errors.New("unable to add subject to role")
+	// ErrDeleteSubjectFromRole when we can't remove a subject from a role
+	ErrDeleteSubjectFromRole = errors.New("unable to remove subject from role")
 	// ErrAddPermission when we are unable to add a new permission
 	ErrAddPermission = errors.New("unable to add permission")
 	// ErrDeletePermission when we are unable to delete a permission
@@ -30,44 +30,44 @@ func NewRoleService(enforcer *casbin.SyncedEnforcer) *CasbinRoleService {
 	return &CasbinRoleService{enforcer: enforcer}
 }
 
-// Users returns all users
-func (r *CasbinRoleService) Users() []string {
+// RoleNames returns all named subjects
+func (r *CasbinRoleService) RoleNames() []string {
 	return r.enforcer.GetAllNamedSubjects("p")
 }
 
-// Groups returns all groups
-func (r *CasbinRoleService) Groups() []string {
-	return r.enforcer.GetAllRoles()
+// RoleMap returns all role -> subject mappings
+func (r *CasbinRoleService) RoleMap() [][]string {
+	return r.enforcer.GetNamedGroupingPolicy("g")
 }
 
-// Permissions defined for this role service
+// Permissions returns all defined for this role service
 func (r *CasbinRoleService) Permissions() [][]string {
 	return r.enforcer.GetNamedPolicy("p")
 }
 
-// DeleteGroup from the service
-func (r *CasbinRoleService) DeleteGroup(group string) error {
-	r.enforcer.DeleteRole(group)
+// DeleteRole from the service
+func (r *CasbinRoleService) DeleteRole(roleName string) error {
+	r.enforcer.DeleteRole(roleName)
 	return nil
 }
 
-// AddUserToGroup ...
-func (r *CasbinRoleService) AddUserToGroup(user, group string) error {
-	if ok := r.enforcer.AddRoleForUser(user, group); !ok {
-		return ErrAddUserToGroup
+// AddSubjectToRole adds a subject to a role
+func (r *CasbinRoleService) AddSubjectToRole(subject, roleName string) error {
+	if ok := r.enforcer.AddRoleForUser(subject, roleName); !ok {
+		return ErrAddSubjectToRole
 	}
 	return nil
 }
 
-// DeleteUserFromGroup ...
-func (r *CasbinRoleService) DeleteUserFromGroup(user, group string) error {
-	if ok := r.enforcer.DeleteRoleForUser(user, group); !ok {
-		return ErrDeleteUserFromGroup
+// DeleteSubjectFromRole removes the subject from the role
+func (r *CasbinRoleService) DeleteSubjectFromRole(subject, roleName string) error {
+	if ok := r.enforcer.DeleteRoleForUser(subject, roleName); !ok {
+		return ErrDeleteSubjectFromRole
 	}
 
-	users := r.enforcer.GetUsersForRole(group)
-	if users == nil || len(users) == 0 {
-		return r.DeleteGroup(group)
+	subjects := r.enforcer.GetUsersForRole(roleName)
+	if subjects == nil || len(subjects) == 0 {
+		return r.DeleteRole(roleName)
 	}
 	return nil
 }

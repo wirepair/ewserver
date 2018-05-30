@@ -69,11 +69,14 @@ func main() {
 	roleService := casbinauth.NewRoleService(enforcer)
 	services := ewserver.NewServices(userService, apiUserService, roleService, logService)
 
+	// setup server
+	e := gin.Default()
+
 	if debug {
 		gin.SetMode(gin.DebugMode)
 		// allow admin access to everything
 		enforcer.AddPolicy("admin", "/", ".*")
-		enforcer.AddPolicy("apiuser", "/v1/api/:", ".*")
+		enforcer.AddPolicy("apiuser", "/api/v1/:", ".*")
 		// only allow anonymous to access the top folder
 		enforcer.AddPolicy("anonymous", "/:", "(GET|POST)")
 		// add root to the admin role
@@ -83,12 +86,11 @@ func main() {
 		userService.Create(root, "password")
 	}
 
-	// setup server
-	e := gin.Default()
 	e.Use(middleware.EnsureSession(sessions), middleware.Require(authorizer))
 
 	v1.RegisterAuthnRoutes(userService, logService, e)
 	v1.RegisterAdminRoutes(services, e)
+	v1.RegisterUserRoutes(services, e)
 
 	if serverConfig.EnableHTTPS {
 		go log.Fatal(runWithManager(e, serverConfig))

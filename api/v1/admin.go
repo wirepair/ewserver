@@ -1,8 +1,6 @@
 package v1
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/wirepair/ewserver/ewserver"
 )
@@ -19,7 +17,7 @@ func AdminUserDetails(userService ewserver.UserService, logService ewserver.LogS
 		// Just incase
 		user.Password = []byte{}
 
-		c.JSON(200, gin.H{"user": user})
+		c.JSON(200, gin.H{"status": "OK", "user": user})
 	}
 }
 
@@ -36,16 +34,17 @@ func AdminUsersDetails(userService ewserver.UserService, logService ewserver.Log
 			user.Password = []byte{}
 		}
 
-		c.JSON(200, gin.H{"users": users})
+		c.JSON(200, gin.H{"status": "OK", "users": users})
 	}
 }
 
 // AdminCreateUser creates a new user.
-func AdminCreateUser(userService ewserver.UserService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
+func AdminCreateUser(userService ewserver.UserService, roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	// embed the ewserver.User but expose/override the Password as a string to allow it to be read
 	// from JSON
 	type newUser struct {
 		ewserver.User
+		Role     string `json:"role"`
 		Password string `json:"password"`
 	}
 
@@ -56,7 +55,10 @@ func AdminCreateUser(userService ewserver.UserService, logService ewserver.LogSe
 			return
 		}
 
-		log.Printf("%#v\n", user)
+		if err := roleService.AddSubjectToRole(string(user.UserName), user.Role); err != nil {
+			c.JSON(500, gin.H{"error": err})
+			return
+		}
 
 		err := userService.Create(&user.User, user.Password)
 		defaultReturn(err, c)
@@ -103,7 +105,7 @@ func AdminAPIUserDetails(apiUserService ewserver.APIUserService, logService ewse
 			c.JSON(500, gin.H{"error": err})
 		}
 
-		c.JSON(200, gin.H{"user": user})
+		c.JSON(200, gin.H{"status": "OK", "user": user})
 	}
 }
 
@@ -116,7 +118,7 @@ func AdminAPIUsersDetails(apiUserService ewserver.APIUserService, logService ews
 			c.JSON(500, gin.H{"error": err})
 		}
 
-		c.JSON(200, gin.H{"users": apiUsers})
+		c.JSON(200, gin.H{"status": "OK", "api_users": apiUsers})
 	}
 }
 
@@ -148,7 +150,6 @@ func AdminDeleteAPIUser(apiUserService ewserver.APIUserService, logService ewser
 
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		log.Printf("finding %s with %#v\n", id, []byte(id))
 		apiUser, err := apiUserService.APIUserByID([]byte(id))
 		if err != nil {
 			c.JSON(500, gin.H{"error": err})

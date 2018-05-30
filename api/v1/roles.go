@@ -3,24 +3,25 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/wirepair/ewserver/ewserver"
+	"github.com/wirepair/ewserver/internal/converter"
 )
 
 // AdminRoleList users and groups
 func AdminRoleList(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		groups := roleService.Groups()
-		users := roleService.Users()
+		roleNames := roleService.RoleNames()
+		roleMap := roleService.RoleMap()
 		permissions := roleService.Permissions()
-		c.JSON(200, gin.H{"groups": groups, "users": users, "permissions": permissions})
+		c.JSON(200, gin.H{"status": "OK", "role_names": roleNames, "role_map": roleMap, "permissions": permissions})
 	}
 }
 
 // AdminAddPermission add a new permission to user or group
 func AdminAddPermission(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type permission struct {
-		Subject string `json:"subject"`
-		Object  string `json:"object"`
-		Method  string `json:"method"`
+		Subject  string   `json:"subject"`
+		Resource string   `json:"resource"`
+		Action   []string `json:"actions"`
 	}
 
 	return func(c *gin.Context) {
@@ -30,7 +31,12 @@ func AdminAddPermission(roleService ewserver.RoleService, logService ewserver.Lo
 			return
 		}
 
-		err := roleService.AddPermission(perm.Subject, perm.Object, perm.Method)
+		regex := converter.ActionsRegex(perm.Action)
+		if regex == "" {
+			c.JSON(500, gin.H{"error": "invalid action specified"})
+			return
+		}
+		err := roleService.AddPermission(perm.Subject, perm.Resource, regex)
 		defaultReturn(err, c)
 	}
 }
@@ -38,9 +44,9 @@ func AdminAddPermission(roleService ewserver.RoleService, logService ewserver.Lo
 // AdminDeletePermission delete a permission
 func AdminDeletePermission(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type permission struct {
-		Subject string `json:"subject"`
-		Object  string `json:"object"`
-		Method  string `json:"method"`
+		Subject  string `json:"subject"`
+		Resource string `json:"resource"`
+		Action   string `json:"actions"`
 	}
 
 	return func(c *gin.Context) {
@@ -50,17 +56,17 @@ func AdminDeletePermission(roleService ewserver.RoleService, logService ewserver
 			return
 		}
 
-		err := roleService.DeletePermission(perm.Subject, perm.Object, perm.Method)
+		err := roleService.DeletePermission(perm.Subject, perm.Resource, perm.Action)
+		logService.Info("perm delete", err.Error())
 		defaultReturn(err, c)
-
 	}
 }
 
-// AdminAddUserToGroup add a user to a group
-func AdminAddUserToGroup(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
+// AdminAddSubjectToRole add a subject to a role (such as user to group)
+func AdminAddSubjectToRole(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type role struct {
-		User  string `json:"user"`
-		Group string `json:"group"`
+		User string `json:"user"`
+		Role string `json:"role"`
 	}
 
 	return func(c *gin.Context) {
@@ -70,16 +76,16 @@ func AdminAddUserToGroup(roleService ewserver.RoleService, logService ewserver.L
 			return
 		}
 
-		err := roleService.AddUserToGroup(addRole.User, addRole.Group)
+		err := roleService.AddSubjectToRole(addRole.User, addRole.Role)
 		defaultReturn(err, c)
 	}
 }
 
-// AdminDeleteUserFromGroup delete a user from a group
-func AdminDeleteUserFromGroup(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
+// AdminDeleteSubjectFromRole delete a user from a group
+func AdminDeleteSubjectFromRole(roleService ewserver.RoleService, logService ewserver.LogService, e *gin.Engine) gin.HandlerFunc {
 	type role struct {
-		User  string `json:"user"`
-		Group string `json:"group"`
+		User string `json:"user"`
+		Role string `json:"role"`
 	}
 
 	return func(c *gin.Context) {
@@ -89,7 +95,7 @@ func AdminDeleteUserFromGroup(roleService ewserver.RoleService, logService ewser
 			return
 		}
 
-		err := roleService.DeleteUserFromGroup(deleteRole.User, deleteRole.Group)
+		err := roleService.DeleteSubjectFromRole(deleteRole.User, deleteRole.Role)
 		defaultReturn(err, c)
 	}
 }

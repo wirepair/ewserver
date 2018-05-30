@@ -18,7 +18,7 @@ func TestLog(t *testing.T) {
 		os.Remove(f.Name())
 	}(f)
 
-	l := New(f)
+	l := New(os.Stdout)
 	l.Info("test info", "addr", 80)
 	l.Error("test error", "test", "abc")
 

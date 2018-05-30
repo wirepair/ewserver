@@ -16,8 +16,6 @@ import (
 	"github.com/wirepair/ewserver/store/boltdb"
 )
 
-var logger = &mock.Log{}
-
 func TestCasbinAuthorizer_Authorize(t *testing.T) {
 	dbFileName, err := testTempDbFileName("testdata/")
 	if err != nil {
@@ -47,7 +45,7 @@ func TestCasbinAuthorizer_Authorize(t *testing.T) {
 		return nil
 	}
 	user := &ewserver.User{}
-
+	logger := &mock.Log{}
 	usapi := &mock.APIUserService{}
 	auth := NewAuthorizer(enforcer, usapi, sessions, logger)
 	req := httptest.NewRequest("GET", "http://ewserver/api/", nil)
@@ -111,11 +109,10 @@ func TestCasbinAuthorizer_Authorize2(t *testing.T) {
 		return nil
 	}
 	user := &ewserver.User{}
+	logger := &mock.Log{}
 	usapi := &mock.APIUserService{}
 	auth := NewAuthorizer(enforcer, usapi, sessions, logger)
 	req := httptest.NewRequest("GET", "http://ewserver/v1/admin/users/all_details", nil)
-
-	sessions.LoadFn(req, "test", user)
 
 	if auth.Authorize(req) {
 		t.Fatalf("error GET /v1/admin/users/all_details should not be authorized\n")

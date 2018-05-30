@@ -19,7 +19,7 @@ func (u UserName) Bytes() []byte {
 
 // User represents a user with UI access
 type User struct {
-	UserName    UserName `json:"user_name"`
+	UserName    UserName `json:"username"`
 	FirstName   string   `json:"first_name"`
 	LastName    string   `json:"last_name"`
 	LastAddress string   `json:"last_address"` // Last IP Address that authenticated for this user
@@ -53,7 +53,7 @@ func DecodeUser(userBytes []byte) (*User, error) {
 	return u, err
 }
 
-// UserService manages how users are accessed
+// UserService manages users and users only
 type UserService interface {
 	Init() error                                                        // Init the user service (prepare the tables/bucket whatever)
 	Authenticate(userName UserName, password string) (*User, error)     // Authenticate the user with provided password

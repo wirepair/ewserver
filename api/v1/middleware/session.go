@@ -6,7 +6,8 @@ import (
 	"github.com/wirepair/ewserver/internal/session"
 )
 
-// EnsureSession exists and it's bound to user (provided x-api-key does not exist)
+// EnsureSession verfies a session exists and that it's bound to a user
+// (provided x-api-key does not exist)
 // Even though we add the anonymous user to the session, it will not exist for
 // the authorization check, so the first request will redirect to /login
 // after issuing a new cookie.

@@ -12,7 +12,7 @@ const (
 
 func defaultReturn(err error, c *gin.Context) {
 	if err != nil {
-		c.JSON(500, gin.H{"error": err})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -22,11 +22,11 @@ func defaultReturn(err error, c *gin.Context) {
 // RegisterAdminRoutes for managing the system
 func RegisterAdminRoutes(services *ewserver.Services, e *gin.Engine) {
 	// setup admin routes
-	apiRoutes := e.Group("v1")
+	apiRoutes := e.Group("api/v1")
 	userRoutes := apiRoutes.Group("/admin/users")
 	userRoutes.GET("/details/:user", AdminUserDetails(services.UserService, services.LogService, e))
 	userRoutes.GET("/list", AdminUsersDetails(services.UserService, services.LogService, e))
-	userRoutes.PUT("/create", AdminCreateUser(services.UserService, services.LogService, e))
+	userRoutes.PUT("/create", AdminCreateUser(services.UserService, services.RoleService, services.LogService, e))
 	userRoutes.POST("/reset_password", AdminResetPassword(services.UserService, services.LogService, e))
 	userRoutes.DELETE("/delete/:user", AdminDeleteUser(services.UserService, services.LogService, e))
 
@@ -40,8 +40,14 @@ func RegisterAdminRoutes(services *ewserver.Services, e *gin.Engine) {
 	roleRoutes.GET("/list", AdminRoleList(services.RoleService, services.LogService, e))
 	roleRoutes.PUT("/permissions", AdminAddPermission(services.RoleService, services.LogService, e))
 	roleRoutes.DELETE("/permissions", AdminDeletePermission(services.RoleService, services.LogService, e))
-	roleRoutes.POST("/group", AdminAddUserToGroup(services.RoleService, services.LogService, e))
-	roleRoutes.DELETE("/group", AdminDeleteUserFromGroup(services.RoleService, services.LogService, e))
+	roleRoutes.POST("/role", AdminAddSubjectToRole(services.RoleService, services.LogService, e))
+	roleRoutes.DELETE("/role", AdminDeleteSubjectFromRole(services.RoleService, services.LogService, e))
+}
+
+// RegisterUserRoutes application specific code goes here.
+func RegisterUserRoutes(services *ewserver.Services, e *gin.Engine) {
+	userRoutes := e.Group("api/v1/user")
+	userRoutes.GET("/profile", UserProfile(services.UserService, e))
 }
 
 // RegisterAuthnRoutes registers the authentication (login/logout) routes under /user
